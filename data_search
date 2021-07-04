@@ -1,0 +1,276 @@
+import pandas as pd
+
+#import
+data = pd.read_csv('../house Rockets/kc_house_data.csv')
+
+#maior e menor
+x = data['price'] == 75000
+y = data['price'] == 7700000
+z = x | y
+data.loc[z]
+
+# descobrir as melhores localizações
+most_valuables = data['price'].sort_values(ascending=False)
+mv = data.query('5350000 <= price').sort_values(by='price', 
+                                                ascending=False)
+mv[{'lat', 'long'}]
+
+# dentre as melhores localizações as mais baratas
+
+#Seattle sorting
+seattle_house = data.query('98199 >= zipcode >= 98102')
+sorting = seattle_house.sort_values(by='price', ascending=True).head(5)
+sorting[{'lat' , 'long', 'price'}]
+
+# Medina Sorting
+medina_houses = data.query('98039 == zipcode')
+sort = medina_houses.sort_values(by='price',ascending=True).head(5)
+sort[{'lat' , 'long', 'price'}]
+sort[{'grade','condition'}]
+
+#Clyde Hill sorting
+clyde_hill = data.query('zipcode == 98004')
+cl_sort = clyde_hill.sort_values(by='price' , ascending=True).head(5)
+cl_sort[{'lat' , 'long' , 'price'}]
+cl_sort[{'grade' , 'condition'}]
+
+#basement search
+x = data['sqft_basement'] == 0
+x.value_counts()
+
+def get_basement(x):
+    qw = x.query('sqft_basement == 0')
+    qa = qw.sort_values(by='price', ascending=True)
+    al = qa[{'price'}].head(5).mean()
+    qw = x.query('sqft_basement != 0')
+    qa = qw.sort_values(by='price', ascending=True)
+    bl=qa[{'price'}].head(5).mean()
+    print(al-bl)
+#bl -> tem porão -> se b for maior que a casa com porão vale mais
+#al -> não tem porão -> se a for maior que b a casa sem porão vale mais
+#+ -> sem porão vale mais
+#- -> com porão vale mais
+get_basement(seattle_house)
+get_basement(medina_houses)
+get_basement(clyde_hill)
+
+# casa com dois andares
+#Verificar se os 5 mais baratos tem apenas 1 andar
+seattle_house.sort_values(by='price',ascending=True).head(5)
+#Compração
+def comparison(x):
+    # 1 piso
+    sf = x.query('floors == 1')
+    sh = sf.sort_values(by='price',ascending=True).head(5)
+    ah = sh['price'].mean()
+    #2 ou mais
+    sg = x.query('floors > 1')
+    sj = sg.sort_values(by='price', ascending=True).head(5)
+    aah = sj['price'].mean()
+    print(ah - aah)
+#- -> 2 ou + é mais caro 
+comparison(seattle_house)
+comparison(medina_houses)
+comparison(clyde_hill)
+
+#reformas 
+
+#Sea
+sorting[{'yr_built','yr_renovated'}].mean()
+#Medina
+sort[{'yr_built','yr_renovated'}].mean()
+#Clayde
+cl_sort[{'yr_built','yr_renovated'}].mean()
+
+x = data.query('yr_renovated == 0')
+#20699
+y = data.query('yr_renovated != 0')
+#914
+#x['price'].mean()
+#530.360
+#y['price'].mean()
+#760.379
+
+def test(x):
+    # sem reforma
+    r = data['yr_renovated'] == 0
+    r_ = data['yr_built'] == int(x)
+    e = r & r_
+    #com reforma
+    s = data['yr_renovated'] != 0
+    t = s & r_
+    #conta % 
+    out_sem = data[e]
+    output_sem = out_sem['yr_renovated'].value_counts()
+    final_sem = int(output_sem)
+    out_com = data[t]
+    output_com = out_com['yr_built'].value_counts()
+    final_com = int(output_com)
+    final_tot = final_sem + final_com
+    conta =  (final_com *100) / final_tot 
+    conta 
+    return conta
+
+def test_preço(x):
+    # sem reforma
+    r = data['yr_renovated'] == 0
+    r_ = data['yr_built'] == int(x)
+    e = r & r_
+    #com reforma
+    s = data['yr_renovated'] != 0
+    t = s & r_
+    #preço
+    pr = data[t]
+    pr_com = pr['price'].mean()
+    po = data[e]
+    po_sem = po['price'].mean()
+    #total
+    p_tot = pr_com + po_sem
+    #porcentagens
+    pr_tf = pr_com - po_sem
+    #final
+    p_final = (pr_tf *100) / p_tot
+    return p_final
+
+#test(1941)
+#test(1956)
+#test_preço(1941)
+#test_preço(1956)
+
+# sem reforma
+r = data['yr_renovated'] == 0
+#com reforma
+s = data['yr_renovated'] != 0
+#preço
+pr = data[s]
+pr_com = pr['price'].mean()
+po = data[r]
+po_sem = po['price'].mean()
+#total
+p_tot = pr_com + po_sem
+#porcentagens
+pr_tf = pr_com - po_sem
+#final
+p_final = (pr_tf *100) / p_tot
+p_final
+
+#ano mais barato de reforma
+n = data['yr_renovated'] != 0;
+#price
+#ano
+n_ = data[n]
+asd = n_['yr_renovated'].sort_values(ascending=True)
+
+xo = ['price' , 'yr_renovated']
+data.loc[(asd) , (xo)]
+#print na média renovada em 2015(16 houses),2014(91 houses)
+#print na média renovada de 1956, 1957
+f = data['yr_renovated'] ==2015
+u = data['yr_renovated'] ==2014
+c= data['yr_renovated'] ==1957
+k= data['yr_renovated'] ==1959
+
+fu = u | f
+ck = c | k
+
+fu_ = data[fu].price.mean()
+ck_ = data[ck].price.mean()
+fuck_tot = fu_ + ck_
+fuck_true = fu_ - ck_
+fuck = (fuck_true *100)/fuck_tot
+fuck
+
+#observação de um período de 6 meses
+
+#aa/mm/dd
+data.date.min()
+#2014/05/02
+data.date.max()
+#2015/05/27
+
+#2014.1 - mes 5 ao 6
+#2014.2 - mes 6 ao 12
+#2015.1 - mes 1 ao 6
+
+d2014_1 = data.date.sort_values(ascending=True
+                ).between('20140502T000000' , '20140631T000000' )
+d2014_2=data.date.sort_values(ascending=True
+                ).between('20140701T000000' , '20141231T000000')
+d2015_1=data.date.sort_values(ascending=True
+                ).between('20150101T000000' , '20150527T000000')
+mean_1 = data.loc[d2014_1, 'price'].mean()
+mean_2 = data.loc[d2014_2,'price'].mean()
+mean_3 = data.loc[d2015_1, 'price'].mean()
+mean_primeiro = (mean_1 + mean_3)/2
+mean_tot = mean_pri + mean_2
+#diferença
+mean_percent = mean_primeiro - mean_2
+
+print('Primeiro semestre' +" =  "+  str(mean_primeiro))
+print(' ')
+print('Segundo semestre' + ' =  ' + str(mean_2))
+print(' ')
+print('Total 1 e 2 sem = '+ str(mean_tot))
+print(' ')
+
+percent = (mean_percent * 100) / mean_tot
+print('Num percentual de = ' + str(percent))
+
+#Casas SQFT LIVING
+print('Sea = '+ str(seattle_house.sqft_living15.mean()))
+print('Medina = '+str(medina_houses.sqft_living15.mean()) )
+print('Clyde = '+ str(clyde_hill.sqft_living15.mean()))
+print('Total = '+ str(data.sqft_living15.mean()))
+
+#casas reformadas sobem quanto
+#Sea
+sorting.loc[:,{'condition' , 'grade'}].mean()
+#Medina
+sort.loc[:,{'condition' , 'grade'}].mean()
+#Clyde Hill
+cl_sort.loc[:,{'condition', 'grade'}].mean()
+#geral
+data.loc[:,{'condition' , 'grade'}].mean()
+
+#escopo de cidade
+s = seattle_house.loc[:,{'condition' , 'grade'}].mean()
+m = medina_houses.loc[:,{'condition' , 'grade'}].mean()
+c = clyde_hill.loc[:,{'condition' , 'grade'}].mean()
+smc = (s + m + c) / 3
+smc
+
+#escopo geral
+data[n].loc[:,{'condition' , 'grade'}].mean()
+
+#ver o aumento de preço
+s = sorting.loc[:,{'price'}].mean()
+m = sort.loc[:,{'price'}].mean()
+c = cl_sort.loc[:,{'price'}].mean()
+smc = (s + m + c) / 3
+d = data[n].loc[:,{'price'}].mean()
+ad = d - smc
+x = (ad*100) / d
+x
+
+# buscar a média do escopo da cidade, mas só as casas reformadas
+#calcular o aumento de prço
+#houses reformadas 
+def reformated_houses(x,y,z):
+    non = x['yr_renovated'] != 0
+    xx = x[non].price.mean()
+    non_1 = y['yr_renovated'] != 0
+    yy = y[non_1].price.mean()
+    non_2 = z['yr_renovated'] != 0
+    zz = z[non_2].price.mean()
+    tot = (xx+yy+zz) / 3
+    print (tot)
+    se = sorting.price.mean()
+    me = sort.price.mean()
+    ch = cl_sort.price.mean()
+    smch = (se+me+ch)/3
+    print(smch)
+    final = tot - smch
+    final_percent = (100*final)/tot
+    return final_percent
+
+reformated_houses(seattle_house , medina_houses, clyde_hill)
